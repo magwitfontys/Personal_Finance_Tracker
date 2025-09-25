@@ -30,7 +30,6 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-          cache: gradle             # harmless if you use Maven
 
       # Detect Gradle vs Maven wrapper under back-end/
       - name: Detect build tool
