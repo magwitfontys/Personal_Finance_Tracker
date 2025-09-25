@@ -1,6 +1,5 @@
 name: Runner Smoke Test
-on: [push, workflow_dispatch]
-
+on: [workflow_dispatch, push]
 jobs:
   ping:
     runs-on: self-hosted
@@ -8,17 +7,3 @@ jobs:
       - name: Hello from runner
         shell: powershell
         run: Write-Host "Hello from $env:COMPUTERNAME (OS=$env:OS)"
-
-      - name: Tool check (non-fatal)
-        shell: powershell
-        continue-on-error: true
-        run: |
-          $PSVersionTable.PSVersion.ToString()
-          git --version
-          node -v
-          npm -v
-          java -version
-
-      - name: Done
-        shell: powershell
-        run: 'exit 0'
