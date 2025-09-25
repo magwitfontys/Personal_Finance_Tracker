@@ -1,0 +1,69 @@
+@'
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend-build-test:
+    name: Backend (Gradle) — build & test
+    runs-on: [self-hosted, Windows, X64]
+    defaults: { run: { shell: pwsh } }
+    steps:
+      - uses: actions/checkout@v4
+
+      # Java 21 (your build.gradle toolchain)
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # Use the Gradle wrapper in back-end/
+      - name: Gradle Assemble
+        working-directory: ./back-end
+        run: .\gradlew.bat --no-daemon assemble
+
+      - name: Gradle Test
+        working-directory: ./back-end
+        run: .\gradlew.bat --no-daemon test
+
+  frontend-build-test:
+    name: Frontend (SvelteKit) — build (& test if present)
+    runs-on: [self-hosted, Windows, X64]
+    defaults: { run: { shell: pwsh } }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: front-end/package-lock.json
+
+      - name: Install
+        working-directory: ./front-end
+        run: npm ci
+
+      - name: Build
+        working-directory: ./front-end
+        run: npm run build
+
+      # will be skipped if you don't have a "test" script
+      - name: Test (if present)
+        working-directory: ./front-end
+        run: npm run test --if-present
+
+  quality:
+    name: Quality (placeholder like the handout)
+    needs: [backend-build-test, frontend-build-test]
+    runs-on: [self-hosted, Windows, X64]
+    steps:
+      - run: echo "Add lint/coverage/Sonar here later"
+'@ | Set-Content .github\workflows\ci.yml
+
+git add .github\workflows\ci.yml
+git commit -m "Add CI: backend+frontend+quality"
+git push
