@@ -1,9 +1,44 @@
-name: Runner Smoke Test
-on: [workflow_dispatch, push]
+name: CI
+
+on:
+  push:
+    paths:
+      - "back-end/**"
+      - "front-end/**"
+      - ".github/workflows/**"
+  pull_request:
+    paths:
+      - "back-end/**"
+      - "front-end/**"
+      - ".github/workflows/**"
+
+# Cancel in-progress runs of the same branch if a new push arrives
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  ping:
-    runs-on: self-hosted
+  backend:
+    name: Backend — build & test
+    runs-on: self-hosted            # your runner
     steps:
-      - name: Hello from runner
+      - uses: actions/checkout@v4
+
+      # Java 21 (adjust if your project uses a different version)
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle             # harmless if you use Maven
+
+      # Detect Gradle vs Maven wrapper under back-end/
+      - name: Detect build tool
+        id: bt
         shell: powershell
-        run: Write-Host "Hello from $env:COMPUTERNAME (OS=$env:OS)"
+        run: |
+          if (Test-Path "back-end\gradlew.bat") { "tool=gradle" >> $env:GITHUB_OUTPUT; exit 0 }
+          if (Test-Path "back-end\mvnw.cmd")    { "tool=maven"  >> $env:GITHUB_OUTPUT; exit 0 }
+          throw "No gradlew.bat or mvnw.cmd found under back-end/"
+
+      # Gra
