@@ -66,11 +66,13 @@ jobs:
             docker rm cddemo   | Out-Null
           }
 
-      - name: Run container (no DB required)
-        run: |
-          docker run -d --name cddemo -p 8080:8080 --restart unless-stopped ^
-            -e SPRING_AUTOCONFIGURE_EXCLUDE=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration ^
-            cddemo:latest
+- name: Run container (no DB required)
+  shell: powershell
+  run: >
+    docker run -d --name cddemo -p 8080:8080 --restart unless-stopped
+    -e "SPRING_AUTOCONFIGURE_EXCLUDE=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration"
+    cddemo:latest
+
 
       - name: Health check + logs on failure
         shell: powershell
