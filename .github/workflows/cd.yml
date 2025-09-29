@@ -1,20 +1,17 @@
-name: CD (Docker on self-hosted)
+name: CD (Docker on self-hosted, branch CI/CD)
 
 on:
   push:
-    branches: [ main ]
-    paths:
-      - "back-end/**"
-      - ".github/workflows/cd.yml"
-  workflow_dispatch:
+    branches: ["CI/CD"]     # only this branch
+  workflow_dispatch:         # allow manual runs too
 
 concurrency:
   group: cd-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build_test_package:
-    name: Build • Test • Package JAR
+  backend_tests:
+    name: Backend tests
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
@@ -25,37 +22,43 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      # Build without tests (matches the workshop's 'build' stage)
-      - name: Gradle build (no tests)
+      # Auto-detect Gradle vs Maven wrapper
+      - name: Detect build tool
+        id: bt
         shell: powershell
-        working-directory: back-end
-        run: .\gradlew.bat --no-daemon clean build -x test
+        run: |
+          if (Test-Path "back-end\gradlew.bat") { "tool=gradle" >> $env:GITHUB_OUTPUT; exit 0 }
+          if (Test-Path "back-end\mvnw.cmd")    { "tool=maven"  >> $env:GITHUB_OUTPUT; exit 0 }
+          throw "No gradlew.bat or mvnw.cmd found under back-end/"
 
-      # Run tests (matches 'test' stage)
       - name: Gradle test
+        if: steps.bt.outputs.tool == 'gradle'
         shell: powershell
         working-directory: back-end
         run: .\gradlew.bat --no-daemon test
 
-      # (Optional) keep the jar as an artifact for 1h like the workshop
-      - name: Upload JAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-jar
-          path: back-end/build/libs/*.jar
-          retention-days: 1
+      - name: Maven test
+        if: steps.bt.outputs.tool == 'maven'
+        working-directory: back-end
+        run: .\mvnw.cmd -B -DskipTests=false test
 
   deploy:
     name: Docker build & run locally
-    needs: build_test_package
+    needs: backend_tests
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
+      - name: Docker is available
+        run: |
+          docker --version
+          docker info
+
+      # Build image using the multi-stage Dockerfile (runs tests again inside build; harmless)
       - name: Build Docker image
         run: docker build -t cddemo:latest ./back-end
 
-      - name: Stop existing container (if any)
+      - name: Stop/remove existing container (if any)
         shell: powershell
         run: |
           if (docker ps -a -q -f "name=cddemo") {
@@ -63,7 +66,7 @@ jobs:
             docker rm cddemo   | Out-Null
           }
 
-      - name: Run container (port 8080)
+      - name: Run container on port 8080
         run: docker run -d --name cddemo -p 8080:8080 cddemo:latest
 
       - name: Show status
