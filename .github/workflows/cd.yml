@@ -2,17 +2,26 @@ name: CD (Docker on self-hosted, branch CI/CD)
 
 on:
   push:
-    branches: ["CI/CD"]      # CD runs only on CI/CD branch
-  workflow_dispatch:          # allow manual runs
+    branches: ["CI/CD"]        # only this branch
+  workflow_dispatch:            # manual runs allowed
 
 concurrency:
   group: cd-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  ping:
+    name: Runner ping
+    runs-on: [self-hosted, Windows, X64]   # match your runner's labels exactly
+    steps:
+      - name: Hello from runner
+        shell: powershell
+        run: Write-Host "Runner: $env:COMPUTERNAME — labels OK"
+
   deploy:
     name: Docker build & run locally
-    runs-on: self-hosted
+    needs: ping
+    runs-on: [self-hosted, Windows, X64]
     steps:
       - uses: actions/checkout@v4
 
@@ -21,7 +30,8 @@ jobs:
           docker --version
           docker info
 
-      - name: Build image (multi-stage)
+      # Multi-stage Dockerfile builds the JAR inside the image
+      - name: Build image
         run: docker build -t cddemo:latest back-end
 
       - name: Stop/remove existing container (if any)
