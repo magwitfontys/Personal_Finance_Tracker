@@ -1,13 +1,11 @@
 # syntax=docker/dockerfile:1
 
-##### Build stage (Gradle) #####
 FROM gradle:8.7-jdk21 AS build
 WORKDIR /app
 COPY . .
-# runs tests and builds the runnable jar
-RUN gradle --no-daemon clean test bootJar
+# build jar but skip unit tests (they will run in the workflow)
+RUN gradle --no-daemon clean bootJar -x test
 
-##### Run stage #####
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=build /app/build/libs/*.jar /app/app.jar
