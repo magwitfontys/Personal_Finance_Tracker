@@ -65,10 +65,21 @@ jobs:
             docker rm cddemo   | Out-Null
           }
 
-      - name: Run container
-        run: docker run -d --name cddemo -p 8080:8080 --restart unless-stopped cddemo:latest
-
-      - name: Show status
+      - name: Run container (no DB required)
         run: |
+          docker run -d --name cddemo -p 8080:8080 --restart unless-stopped ^
+            -e SPRING_AUTOCONFIGURE_EXCLUDE=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration ^
+            cddemo:latest
+
+      - name: Health check + logs on failure
+        shell: powershell
+        run: |
+          Start-Sleep -Seconds 8
+          $resp = (Invoke-WebRequest -UseBasicParsing http://localhost:8080/actuator/health -ErrorAction SilentlyContinue)
+          if (-not $resp -or $resp.StatusCode -ne 200) {
+            Write-Host "Container did not become healthy. Recent logs:"
+            docker logs --tail 200 cddemo
+            exit 1
+          }
           docker ps --filter "name=cddemo"
-          docker logs --tail 50 cddemo
+
