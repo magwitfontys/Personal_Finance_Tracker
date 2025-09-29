@@ -1,9 +1,12 @@
-name: CD (Docker on self-hosted, branch CI/CD)
+name: CD (Docker on self-hosted)
 
 on:
   push:
-    branches: ["CI/CD"]        # only this branch
-  workflow_dispatch:            # manual runs allowed
+    branches:
+      - "CI/CD"   # or whatever branch you want to auto-deploy
+      - main      # keep/remove as you like
+  workflow_dispatch:  # <-- this enables the "Run workflow" button
+
 
 concurrency:
   group: cd-${{ github.ref }}
