@@ -1,10 +1,9 @@
-name: CD 
+name: CD
 
 on:
   push:
-    branches: ["main"]   # or ["main", "CI/CD"]
+    branches: ["main"]   # or ["main","CI/CD"]
   workflow_dispatch:
-
 
 concurrency:
   group: cd-${{ github.ref }}
@@ -40,6 +39,7 @@ jobs:
 
       - name: Run Maven tests
         if: steps.bt.outputs.tool == 'maven'
+        shell: powershell
         working-directory: back-end
         run: .\mvnw.cmd -B -DskipTests=false test
 
@@ -51,11 +51,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Docker is available
+        shell: powershell
         run: |
           docker --version
           docker info
 
       - name: Build image (tests skipped in Dockerfile)
+        shell: powershell
         run: docker build -t cddemo:latest back-end
 
       - name: Stop/remove existing container (if any)
@@ -66,13 +68,12 @@ jobs:
             docker rm cddemo   | Out-Null
           }
 
-- name: Run container (no DB required)
-  shell: powershell
-  run: >
-    docker run -d --name cddemo -p 8080:8080 --restart unless-stopped
-    -e "SPRING_AUTOCONFIGURE_EXCLUDE=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration"
-    cddemo:latest
-
+      - name: Run container (no DB required)
+        shell: powershell
+        run: >
+          docker run -d --name cddemo -p 8080:8080 --restart unless-stopped
+          -e "SPRING_AUTOCONFIGURE_EXCLUDE=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration"
+          cddemo:latest
 
       - name: Health check + logs on failure
         shell: powershell
@@ -85,4 +86,3 @@ jobs:
             exit 1
           }
           docker ps --filter "name=cddemo"
-
