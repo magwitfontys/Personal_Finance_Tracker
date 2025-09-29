@@ -1,5 +1,8 @@
 name: CD
+
 on:
+  push:
+    branches: ["main"]
   workflow_dispatch:
 
 concurrency:
@@ -19,7 +22,6 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      # Detect Gradle/Maven wrapper
       - name: Detect build tool
         id: bt
         shell: powershell
@@ -72,14 +74,25 @@ jobs:
           -e "SPRING_AUTOCONFIGURE_EXCLUDE=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration"
           cddemo:latest
 
-      - name: Health check + logs on failure
+      # 🔁 Port-probe health check (no Actuator needed)
+      - name: Wait for app (port 8080) + logs on failure
         shell: powershell
         run: |
-          Start-Sleep -Seconds 8
-          $resp = (Invoke-WebRequest -UseBasicParsing http://localhost:8080/actuator/health -ErrorAction SilentlyContinue)
-          if (-not $resp -or $resp.StatusCode -ne 200) {
-            Write-Host "Container did not become healthy. Recent logs:"
+          $deadline = (Get-Date).AddSeconds(60)
+          $ok = $false
+          do {
+            $running = docker inspect -f "{{.State.Running}}" cddemo 2>$null
+            if ($running -eq "true") {
+              $tcp = Test-NetConnection -ComputerName localhost -Port 8080 -WarningAction SilentlyContinue
+              if ($tcp.TcpTestSucceeded) { $ok = $true; break }
+            }
+            Start-Sleep -Seconds 2
+          } until ((Get-Date) -gt $deadline)
+
+          if (-not $ok) {
+            Write-Host "Container didn't open port 8080 in time. Recent logs:"
             docker logs --tail 200 cddemo
             exit 1
           }
+
           docker ps --filter "name=cddemo"
