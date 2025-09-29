@@ -1,0 +1,70 @@
+name: CD (Docker on self-hosted)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "back-end/**"
+      - ".github/workflows/cd.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_test_package:
+    name: Build • Test • Package JAR
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # Build without tests (matches the workshop's 'build' stage)
+      - name: Gradle build (no tests)
+        shell: powershell
+        working-directory: back-end
+        run: .\gradlew.bat --no-daemon clean build -x test
+
+      # Run tests (matches 'test' stage)
+      - name: Gradle test
+        shell: powershell
+        working-directory: back-end
+        run: .\gradlew.bat --no-daemon test
+
+      # (Optional) keep the jar as an artifact for 1h like the workshop
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: back-end/build/libs/*.jar
+          retention-days: 1
+
+  deploy:
+    name: Docker build & run locally
+    needs: build_test_package
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t cddemo:latest ./back-end
+
+      - name: Stop existing container (if any)
+        shell: powershell
+        run: |
+          if (docker ps -a -q -f "name=cddemo") {
+            docker stop cddemo | Out-Null
+            docker rm cddemo   | Out-Null
+          }
+
+      - name: Run container (port 8080)
+        run: docker run -d --name cddemo -p 8080:8080 cddemo:latest
+
+      - name: Show status
+        run: docker ps --filter "name=cddemo"
