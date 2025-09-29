@@ -2,49 +2,16 @@ name: CD (Docker on self-hosted, branch CI/CD)
 
 on:
   push:
-    branches: ["CI/CD"]     # only this branch
-  workflow_dispatch:         # allow manual runs too
+    branches: ["CI/CD"]      # CD runs only on CI/CD branch
+  workflow_dispatch:          # allow manual runs
 
 concurrency:
   group: cd-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  backend_tests:
-    name: Backend tests
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Java 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      # Auto-detect Gradle vs Maven wrapper
-      - name: Detect build tool
-        id: bt
-        shell: powershell
-        run: |
-          if (Test-Path "back-end\gradlew.bat") { "tool=gradle" >> $env:GITHUB_OUTPUT; exit 0 }
-          if (Test-Path "back-end\mvnw.cmd")    { "tool=maven"  >> $env:GITHUB_OUTPUT; exit 0 }
-          throw "No gradlew.bat or mvnw.cmd found under back-end/"
-
-      - name: Gradle test
-        if: steps.bt.outputs.tool == 'gradle'
-        shell: powershell
-        working-directory: back-end
-        run: .\gradlew.bat --no-daemon test
-
-      - name: Maven test
-        if: steps.bt.outputs.tool == 'maven'
-        working-directory: back-end
-        run: .\mvnw.cmd -B -DskipTests=false test
-
   deploy:
     name: Docker build & run locally
-    needs: backend_tests
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
@@ -54,9 +21,8 @@ jobs:
           docker --version
           docker info
 
-      # Build image using the multi-stage Dockerfile (runs tests again inside build; harmless)
-      - name: Build Docker image
-        run: docker build -t cddemo:latest ./back-end
+      - name: Build image (multi-stage)
+        run: docker build -t cddemo:latest back-end
 
       - name: Stop/remove existing container (if any)
         shell: powershell
@@ -66,7 +32,7 @@ jobs:
             docker rm cddemo   | Out-Null
           }
 
-      - name: Run container on port 8080
+      - name: Run container
         run: docker run -d --name cddemo -p 8080:8080 cddemo:latest
 
       - name: Show status
