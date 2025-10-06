@@ -1,11 +1,9 @@
-name: CD (Docker on self-hosted)
+name: CD
+
 
 on:
   push:
-    branches: [ main ]
-    paths:
-      - "back-end/**"
-      - ".github/workflows/cd.yml"
+    branches: ["main"]
   workflow_dispatch:
 
 concurrency:
@@ -13,9 +11,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_test_package:
-    name: Build • Test • Package JAR
-    runs-on: self-hosted
+  test-backend:
+    name: Backend tests
+    runs-on: [self-hosted, Windows, X64]
     steps:
       - uses: actions/checkout@v4
 
@@ -25,37 +23,44 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      # Build without tests (matches the workshop's 'build' stage)
-      - name: Gradle build (no tests)
+      - name: Detect build tool
+        id: bt
+        shell: powershell
+        run: |
+          if (Test-Path "back-end\gradlew.bat") { "tool=gradle" >> $env:GITHUB_OUTPUT; exit 0 }
+          if (Test-Path "back-end\mvnw.cmd")    { "tool=maven"  >> $env:GITHUB_OUTPUT; exit 0 }
+          throw "No gradlew.bat or mvnw.cmd in back-end/"
+
+      - name: Run Gradle tests
+        if: steps.bt.outputs.tool == 'gradle'
         shell: powershell
         working-directory: back-end
-        run: .\gradlew.bat --no-daemon clean build -x test
+        run: .\gradlew.bat --no-daemon clean test
 
-      # Run tests (matches 'test' stage)
-      - name: Gradle test
+      - name: Run Maven tests
+        if: steps.bt.outputs.tool == 'maven'
         shell: powershell
         working-directory: back-end
-        run: .\gradlew.bat --no-daemon test
-
-      # (Optional) keep the jar as an artifact for 1h like the workshop
-      - name: Upload JAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-jar
-          path: back-end/build/libs/*.jar
-          retention-days: 1
+        run: .\mvnw.cmd -B -DskipTests=false test
 
   deploy:
     name: Docker build & run locally
-    needs: build_test_package
-    runs-on: self-hosted
+    needs: test-backend
+    runs-on: [self-hosted, Windows, X64]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build -t cddemo:latest ./back-end
+      - name: Docker is available
+        shell: powershell
+        run: |
+          docker --version
+          docker info
 
-      - name: Stop existing container (if any)
+      - name: Build image (tests skipped in Dockerfile)
+        shell: powershell
+        run: docker build -t cddemo:latest back-end
+
+      - name: Stop/remove existing container (if any)
         shell: powershell
         run: |
           if (docker ps -a -q -f "name=cddemo") {
@@ -63,8 +68,32 @@ jobs:
             docker rm cddemo   | Out-Null
           }
 
-      - name: Run container (port 8080)
-        run: docker run -d --name cddemo -p 8080:8080 cddemo:latest
+      - name: Run container (no DB required)
+        shell: powershell
+        run: >
+          docker run -d --name cddemo -p 8080:8080 --restart unless-stopped
+          -e "SPRING_AUTOCONFIGURE_EXCLUDE=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration"
+          cddemo:latest
 
-      - name: Show status
-        run: docker ps --filter "name=cddemo"
+      # 🔁 Port-probe health check (no Actuator needed)
+      - name: Wait for app (port 8080) + logs on failure
+        shell: powershell
+        run: |
+          $deadline = (Get-Date).AddSeconds(60)
+          $ok = $false
+          do {
+            $running = docker inspect -f "{{.State.Running}}" cddemo 2>$null
+            if ($running -eq "true") {
+              $tcp = Test-NetConnection -ComputerName localhost -Port 8080 -WarningAction SilentlyContinue
+              if ($tcp.TcpTestSucceeded) { $ok = $true; break }
+            }
+            Start-Sleep -Seconds 2
+          } until ((Get-Date) -gt $deadline)
+
+          if (-not $ok) {
+            Write-Host "Container didn't open port 8080 in time. Recent logs:"
+            docker logs --tail 200 cddemo
+            exit 1
+          }
+
+          docker ps --filter "name=cddemo"

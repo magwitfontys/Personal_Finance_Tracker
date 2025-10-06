@@ -1,0 +1,17 @@
+# Git / editors
+.git
+.gitignore
+.vscode
+.idea
+*.iml
+
+# Gradle caches / build outputs
+.gradle
+build/
+out/
+bin/
+obj/
+
+# Misc
+**/node_modules
+*.log
