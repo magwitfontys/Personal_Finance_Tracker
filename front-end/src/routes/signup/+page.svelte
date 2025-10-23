@@ -1,18 +1,23 @@
 <script>
-	import { LOGIN_URL, postJson } from '$lib/api';
+	import { REGISTER_URL, postJson } from '$lib/api';
 
 	let username = '';
 	let password = '';
+	let confirm = '';
 	let loading = false;
 	let result = null;
 	let error = null;
 
 	async function submit() {
+		if (password !== confirm) {
+			error = { data: { error: "Passwords don't match" } };
+			return;
+		}
 		loading = true;
 		result = null;
 		error = null;
 		try {
-			result = await postJson(LOGIN_URL, { username, password });
+			result = await postJson(REGISTER_URL, { username, password });
 		} catch (e) {
 			error = e;
 		} finally {
@@ -21,17 +26,24 @@
 	}
 </script>
 
-<h2>Login (Smoke Test)</h2>
+<h2>Sign up (Smoke Test)</h2>
 <form on:submit|preventDefault={submit}>
 	<div><label>Username</label><br /><input bind:value={username} autocomplete="username" /></div>
 	<div>
 		<label>Password</label><br /><input
 			type="password"
 			bind:value={password}
-			autocomplete="current-password"
+			autocomplete="new-password"
 		/>
 	</div>
-	<button disabled={loading} type="submit">{loading ? '...' : 'Login'}</button>
+	<div>
+		<label>Confirm</label><br /><input
+			type="password"
+			bind:value={confirm}
+			autocomplete="new-password"
+		/>
+	</div>
+	<button disabled={loading} type="submit">{loading ? '...' : 'Create account'}</button>
 </form>
 
 <h3>Response</h3>

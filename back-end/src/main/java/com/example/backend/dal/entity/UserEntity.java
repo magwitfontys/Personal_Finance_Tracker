@@ -10,19 +10,21 @@ public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // SQL Server IDENTITY
     @Column(name = "User_ID", nullable = false)
-    private Integer id; // SQL int → Integer
+    private Integer id;
 
     @Column(name = "Username", nullable = false, length = 100)
     private String username;
 
-    @Column(name = "PasswordHash", nullable = false, length = 255)
+    // No explicit length to match NVARCHAR(MAX) comfortably
+    @Column(name = "PasswordHash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "CreatedAt") // nullable in your schema
+    @Column(name = "CreatedAt", nullable = true)
     private LocalDateTime createdAt;
 
-    // --- JPA needs a no-args constructor
-    protected UserEntity() {
+    // --- JPA requires a no-args constructor; make it PUBLIC so BLL can instantiate
+    // it
+    public UserEntity() {
     }
 
     // --- Convenience constructor (optional)
@@ -30,6 +32,14 @@ public class UserEntity {
         this.username = username;
         this.passwordHash = passwordHash;
         this.createdAt = createdAt;
+    }
+
+    // --- Fallback to set CreatedAt if not provided (helps when column is NOT NULL)
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
     }
 
     // --- Getters/Setters
