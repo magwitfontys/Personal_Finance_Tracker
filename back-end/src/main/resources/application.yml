@@ -12,8 +12,8 @@ spring:
       path: /h2-console
   datasource:
     url: jdbc:h2:file:./data/pfdb;MODE=MSSQLServer;DATABASE_TO_UPPER=false
-    username: sa
-    password:
+    username: magwit
+    password: password
     driver-class-name: org.h2.Driver
   jpa:
     hibernate:

@@ -1,5 +1,5 @@
 <script>
-	import { auth } from '$lib/auth/authStore'; // <-- updated path
+	import { auth } from '$lib/stores/authStore';
 	import { goto } from '$app/navigation';
 
 	let me = { username: null };

@@ -26,7 +26,6 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Username already taken");
         }
 
-        // For this smoke test we store raw password in PasswordHash column.
         var entity = new UserEntity();
         entity.setUsername(username);
         entity.setPasswordHash(raw);

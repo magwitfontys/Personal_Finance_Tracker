@@ -23,7 +23,10 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CREATED).body(auth.register(request));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new Object(){ public final String error = ex.getMessage(); });
+                    .body(new Object() {
+                        @SuppressWarnings("unused")
+                        public final String error = ex.getMessage();
+                    });
         }
     }
 
