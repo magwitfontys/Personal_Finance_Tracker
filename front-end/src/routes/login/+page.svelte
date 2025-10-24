@@ -1,55 +1,51 @@
 <script>
-	import { LOGIN_URL, postJson } from '$lib/api';
-	import { authToken } from '$lib/stores/auth';
+	import { post } from '$lib/api';
+	import { auth } from '$lib/stores/authStore';
+	import { goto } from '$app/navigation';
 
 	let username = '';
 	let password = '';
-
 	let loading = false;
-	let result = null;
-	let error = null;
+	let msg = '';
+	let err = '';
 
 	async function submit() {
 		loading = true;
-		result = null;
-		error = null;
-		try {
-			const data = await postJson(LOGIN_URL, { username, password });
-			result = data;
-			if (data && typeof data === 'object' && 'token' in data) {
-				authToken.set(data.token);
-			}
-		} catch (e) {
-			error = e;
-		} finally {
-			loading = false;
+		msg = '';
+		err = '';
+		const res = await post('/api/auth/login', { username, password });
+		if (res.ok && res.data?.success) {
+			auth.set({ username });
+			msg = 'Logged in!';
+			setTimeout(() => goto('/'), 400);
+		} else {
+			err = res.error ?? 'Invalid credentials';
 		}
+		loading = false;
 	}
 </script>
 
-<h1>Login</h1>
+<svelte:head><title>Log in</title></svelte:head>
 
+<h1>Log in</h1>
 <form on:submit|preventDefault={submit}>
-	<div>
-		<label>Username</label><br />
-		<input bind:value={username} autocomplete="username" />
-	</div>
-
-	<div>
-		<label>Password</label><br />
-		<input type="password" bind:value={password} autocomplete="current-password" />
-	</div>
-
-	<button disabled={loading} type="submit">{loading ? '...' : 'Login'}</button>
+	<label>Username <input bind:value={username} required /></label>
+	<label>Password <input type="password" bind:value={password} required /></label>
+	<button disabled={loading}>Log in</button>
 </form>
 
-<h3>Request</h3>
-<pre>{JSON.stringify(
-		{ url: LOGIN_URL, body: { username, password: password ? '***' : '' } },
-		null,
-		2
-	)}</pre>
+{#if msg}<p style="color:#0a7">{msg}</p>{/if}
+{#if err}<p style="color:#b00">{err}</p>{/if}
 
-<h3>Response</h3>
-{#if result}<pre>{JSON.stringify(result, null, 2)}</pre>{/if}
-{#if error}<pre>{JSON.stringify(error, null, 2)}</pre>{/if}
+<style>
+	form {
+		display: grid;
+		gap: 0.75rem;
+		max-width: 360px;
+	}
+	input,
+	button {
+		padding: 0.6rem;
+		font: inherit;
+	}
+</style>

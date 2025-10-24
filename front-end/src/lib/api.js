@@ -1,20 +1,19 @@
 import { PUBLIC_API_BASE } from '$env/static/public';
 
-export const API_BASE = (PUBLIC_API_BASE || 'http://localhost:8081').replace(/\/+$/, '');
-export const LOGIN_URL = `${API_BASE}/api/auth/login`;
-export const REGISTER_URL = `${API_BASE}/api/auth/register`;
-
-export async function postJson(url, body) {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-
-  const text = await res.text();
-  let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
-
-  if (!res.ok) throw { status: res.status, statusText: res.statusText, data };
-  return data;
+export async function post(path, body) {
+  try {
+    const res = await fetch(`${PUBLIC_API_BASE}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const text = await res.text();
+    let data;
+    try { data = text ? JSON.parse(text) : undefined; } catch { data = { raw: text }; }
+    return res.ok
+      ? { ok: true, status: res.status, data }
+      : { ok: false, status: res.status, error: data?.message ?? text };
+  } catch (e) {
+    return { ok: false, status: 0, error: e?.message ?? 'Network error' };
+  }
 }

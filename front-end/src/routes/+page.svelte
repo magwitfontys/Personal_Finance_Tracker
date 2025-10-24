@@ -1,39 +1,14 @@
 <script>
-	import { LOGIN_URL, postJson } from '$lib/api';
+	import { auth } from '$lib/auth/authStore'; // <-- updated path
+	import { goto } from '$app/navigation';
 
-	let username = '';
-	let password = '';
-	let loading = false;
-	let result = null;
-	let error = null;
-
-	async function submit() {
-		loading = true;
-		result = null;
-		error = null;
-		try {
-			result = await postJson(LOGIN_URL, { username, password });
-		} catch (e) {
-			error = e;
-		} finally {
-			loading = false;
-		}
+	let me = { username: null };
+	const unsub = auth.subscribe((v) => (me = v));
+	function logout() {
+		auth.set({ username: null });
+		goto('/login');
 	}
+
+	import { onDestroy } from 'svelte';
+	onDestroy(unsub);
 </script>
-
-<h2>Login (Smoke Test)</h2>
-<form on:submit|preventDefault={submit}>
-	<div><label>Username</label><br /><input bind:value={username} autocomplete="username" /></div>
-	<div>
-		<label>Password</label><br /><input
-			type="password"
-			bind:value={password}
-			autocomplete="current-password"
-		/>
-	</div>
-	<button disabled={loading} type="submit">{loading ? '...' : 'Login'}</button>
-</form>
-
-<h3>Response</h3>
-{#if result}<pre>{JSON.stringify(result, null, 2)}</pre>{/if}
-{#if error}<pre>{JSON.stringify(error, null, 2)}</pre>{/if}

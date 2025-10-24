@@ -19,14 +19,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-    // Password hashing without enabling the whole Spring Security stack
-    implementation 'org.springframework.security:spring-security-crypto'
-
-    runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11'
+    // add H2 for dev
+    runtimeOnly 'com.h2database:h2'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
 
 tasks.named('test') { useJUnitPlatform() }
