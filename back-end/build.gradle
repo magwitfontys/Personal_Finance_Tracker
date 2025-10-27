@@ -24,6 +24,9 @@ dependencies {
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // BCrypt for password hashing
+    implementation 'org.springframework.security:spring-security-crypto'
+
 }
 
 

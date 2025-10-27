@@ -4,21 +4,25 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Users", schema = "dbo")
+@Table(name = "Users", indexes = {
+        @Index(name = "ix_users_username", columnList = "Username", unique = true),
+        @Index(name = "ix_users_created_at", columnList = "CreatedAt")
+})
 public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "User_ID", nullable = false)
+    @Column(name = "User_ID", nullable = false, updatable = false)
     private Integer id;
 
-    @Column(name = "Username", nullable = false, length = 100)
+    @Column(name = "Username", nullable = false, length = 100, unique = true)
     private String username;
 
-    @Column(name = "PasswordHash", nullable = false)
+    // BCrypt max is 60 char
+    @Column(name = "PasswordHash", nullable = false, length = 60)
     private String passwordHash;
 
-    @Column(name = "CreatedAt", nullable = true)
+    @Column(name = "CreatedAt", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     public UserEntity() {
