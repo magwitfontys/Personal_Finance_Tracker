@@ -3,8 +3,8 @@ package com.example.backend.dal.adapter;
 import com.example.backend.bll.dto.UserDTO;
 import com.example.backend.bll.port.out.UserInterface;
 import com.example.backend.dal.entity.UserEntity;
-import org.springframework.dao.DataIntegrityViolationException;
 import com.example.backend.dal.repo.UserJpaRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +20,7 @@ public class UserJpaAdapter implements UserInterface {
         this.repo = repo;
     }
 
-    // read
+    // -------------------- READ --------------------
 
     @Override
     @Transactional(readOnly = true)
@@ -52,38 +52,38 @@ public class UserJpaAdapter implements UserInterface {
         return repo.findAll().stream().map(this::toDTO).toList();
     }
 
-    // write
+    // -------------------- WRITE --------------------
 
     @Override
     @Transactional
     public UserDTO save(UserDTO user) {
         try {
             UserEntity saved;
+
             if (user.getId() == null) {
                 // CREATE
-                UserEntity e = new UserEntity();
-                e.setUsername(user.getUsername());
-                e.setPasswordHash(user.getPasswordHash()); // BLL already hashed
-                // createdAt: let @PrePersist set it, but set if provided
-                if (user.getCreatedAt() != null) {
-                    e.setCreatedAt(user.getCreatedAt());
-                }
+                UserEntity e = toEntity(user);
+                // createdAt is set by @PrePersist if null
                 saved = repo.save(e);
             } else {
-                // UPDATE (load, modify, save)
+                // UPDATE
                 UserEntity e = repo.findById(user.getId())
                         .orElseThrow(() -> new IllegalArgumentException("User not found: id=" + user.getId()));
+
                 e.setUsername(user.getUsername());
-                // only replace hash if BLL provided one (avoid nuking existing hash)
+
+                // Only overwrite hash if provided (prevents wiping an existing hash)
                 if (user.getPasswordHash() != null && !user.getPasswordHash().isBlank()) {
                     e.setPasswordHash(user.getPasswordHash());
                 }
-                // createdAt stays unchanged (column is updatable=false in your entity)
+
+                // createdAt remains unchanged (column is updatable=false in the entity)
                 saved = repo.save(e);
             }
+
             return toDTO(saved);
         } catch (DataIntegrityViolationException ex) {
-            // in case of race conditions on unique username
+            // Handles race on unique username at DB level
             throw new IllegalStateException("Username already exists", ex);
         }
     }
@@ -98,14 +98,24 @@ public class UserJpaAdapter implements UserInterface {
         return true;
     }
 
-    // map
+    // -------------------- MAPPING --------------------
 
     private UserDTO toDTO(UserEntity e) {
-        var d = new UserDTO();
+        // IMPORTANT: include passwordHash so AuthService.login() can verify
+        UserDTO d = new UserDTO();
         d.setId(e.getId());
         d.setUsername(e.getUsername());
-        d.setPasswordHash(e.getPasswordHash()); // marked @JsonIgnore in DTO
+        d.setPasswordHash(e.getPasswordHash());
         d.setCreatedAt(e.getCreatedAt());
         return d;
+    }
+
+    private UserEntity toEntity(UserDTO d) {
+        UserEntity e = new UserEntity();
+        e.setId(d.getId());
+        e.setUsername(d.getUsername());
+        e.setPasswordHash(d.getPasswordHash()); // BLL passes a bcrypt hash on register
+        e.setCreatedAt(d.getCreatedAt()); // may be null; @PrePersist will fill
+        return e;
     }
 }

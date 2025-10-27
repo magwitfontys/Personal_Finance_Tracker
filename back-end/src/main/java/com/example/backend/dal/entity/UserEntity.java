@@ -12,17 +12,17 @@ public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "User_ID", nullable = false, updatable = false)
+    @Column(name = "user_id", nullable = false, updatable = false)
     private Integer id;
 
-    @Column(name = "Username", nullable = false, length = 100, unique = true)
+    @Column(name = "username", nullable = false, length = 100, unique = true)
     private String username;
 
     // BCrypt max is 60 char
-    @Column(name = "PasswordHash", nullable = false, length = 60)
+    @Column(name = "password_hash", nullable = false, length = 60)
     private String passwordHash;
 
-    @Column(name = "CreatedAt", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     public UserEntity() {
