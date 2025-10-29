@@ -1,0 +1,136 @@
+.auth .wrap {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: #f5f6fb;
+  padding: 2rem;
+}
+
+.auth .card {
+  width: 100%;
+  max-width: 560px;
+  background: white;
+  border-radius: 16px;
+  padding: 28px 28px 32px;
+  box-shadow: 0 8px 30px rgba(16, 18, 27, 0.08);
+}
+
+.auth .logo {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #0b0b18;
+  color: #fff;
+  font-size: 28px;
+}
+
+.auth .title {
+  text-align: center;
+  margin: 8px 0 4px;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.auth .tagline {
+  text-align: center;
+  color: #70737d;
+  margin: 0 0 18px;
+}
+
+.auth .tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  background: #f0f1f6;
+  border-radius: 999px;
+  padding: 4px;
+  margin: 8px 0 18px;
+}
+
+.auth .tabs button {
+  border: 0;
+  background: transparent;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: #5a5d66;
+  cursor: pointer;
+}
+
+.auth .tabs button.active {
+  background: white;
+  color: #0b0b18;
+  box-shadow: 0 1px 3px rgba(16, 18, 27, 0.06);
+}
+
+.auth .form {
+  display: grid;
+  gap: 14px;
+}
+
+.auth label span {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #222330;
+}
+
+.auth input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7ef;
+  background: #f7f8fc;
+  outline: none;
+}
+
+.auth input:focus {
+  border-color: #c7cae1;
+  background: #fff;
+}
+
+.auth .pw-field {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth .eye {
+  border: 0;
+  background: #eef0f7;
+  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.auth .primary {
+  margin-top: 6px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: #0b0b18;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth .primary:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.auth .msg {
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+
+.auth .msg.error { background: #ffecec; color: #8b1a1a; }
+.auth .msg.ok { background: #e8fff0; color: #0a7a3e; }

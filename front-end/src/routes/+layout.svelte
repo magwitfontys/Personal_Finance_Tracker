@@ -2,24 +2,29 @@
 	import { auth } from '$lib/stores/authStore';
 	import { goto } from '$app/navigation';
 
-	let me = { username: null };
-	const unsub = auth.subscribe((v) => (me = v));
-	function logout() {
-		auth.set({ username: null });
-		goto('/login');
-	}
+	// use Svelte's $store syntax instead of manual subscribe/unsubscribe
+	$: me = $auth;
 
-	import { onDestroy } from 'svelte';
-	onDestroy(unsub);
+	function logout() {
+		auth.set({ username: null, token: null });
+		goto('/auth');
+	}
 </script>
 
 <nav style="display:flex;gap:1rem;margin:1rem 0">
-	<a href="/">Home</a>
-	<a href="/signup">Sign up</a>
-	<a href="/login">Log in</a>
+	<!-- Home goes to dashboard if logged in, otherwise to auth -->
+	<a href={$auth?.token ? '/dashboard' : '/auth'}>Home</a>
+
+	{#if !$auth?.token}
+		<!-- Not signed in: show Login/Register (both handled in /auth; #register opens the tab) -->
+		<a href="/auth">Log in</a>
+		<a href="/auth#register">Register</a>
+	{/if}
+
 	<span style="margin-left:auto">
-		{#if me.username}
-			Signed in as <strong>{me.username}</strong> • <button on:click={logout}>Logout</button>
+		{#if $auth?.username}
+			Signed in as <strong>{$auth.username}</strong> •
+			<button on:click={logout}>Logout</button>
 		{/if}
 	</span>
 </nav>

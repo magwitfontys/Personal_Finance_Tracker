@@ -12,7 +12,11 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping(path = "/api/auth", produces = "application/json")
+@CrossOrigin(origins = {
+        "http://localhost:5173", "http://127.0.0.1:5173",
+        "http://localhost:4173", "http://127.0.0.1:4173"
+})
 public class AuthController {
 
     private final AuthService auth;
@@ -21,30 +25,56 @@ public class AuthController {
         this.auth = auth;
     }
 
-    @PostMapping("/register")
+    @PostMapping(path = "/register", consumes = "application/json")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+        // Basic guard in case DTO validation is not present
+        if (isBlank(request.getUsername()) || isBlank(request.getPassword())) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorBody("Username and password are required."));
+        }
+
         try {
-            UserDTO created = auth.register(request.getUsername(), request.getPassword());
+            UserDTO created = auth.register(request.getUsername().trim(), request.getPassword());
+            // Location header points to the new user resource (adjust if your users route
+            // differs)
             return ResponseEntity
                     .created(URI.create("/api/users/" + created.getId()))
                     .body(created);
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorBody(ex.getMessage()));
+            // e.g., username already taken
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(new ErrorBody(ex.getMessage()));
         }
     }
 
-    @PostMapping("/login")
+    @PostMapping(path = "/login", consumes = "application/json")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-        boolean ok = auth.login(request.getUsername(), request.getPassword());
+        if (isBlank(request.getUsername()) || isBlank(request.getPassword())) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorBody("Username and password are required."));
+        }
+
+        boolean ok = auth.login(request.getUsername().trim(), request.getPassword());
         if (!ok) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            // Front-end will show this message and stay on the login page
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorBody("Invalid credentials"));
         }
-        // return simple JSON so the frontend’s res.json() succeeds
+
+        // Keep it simple for now. If you add JWT later, return it here instead.
         return ResponseEntity.ok(new SuccessBody(true));
     }
 
-    // --- tiny JSON bodies so frontend never breaks on empty responses ---
+    // --- Helpers & tiny JSON bodies so the front-end never breaks on empty
+    // responses ---
+    private static boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
+    }
+
     static class ErrorBody {
         public final String error;
 

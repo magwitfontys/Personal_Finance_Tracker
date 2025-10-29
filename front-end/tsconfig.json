@@ -10,5 +10,5 @@
     "noEmit": true,
     "checkJs": false
   },
-  "include": ["src", "vite.config.ts", "svelte.config.js", "eslint.config.js"]
+  "include": ["src", "vite.config.js", "svelte.config.js", "eslint.config.js"]
 }
