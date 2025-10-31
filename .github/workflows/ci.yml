@@ -1,43 +1,35 @@
-name: CI
+name: CI (build & test)
 
 on:
   push:
-    paths:
-      - "back-end/**"
-      - "front-end/**"
-      - ".github/workflows/**"
+    branches: [ main ]   # change if your default branch is different
   pull_request:
-    paths:
-      - "back-end/**"
-      - "front-end/**"
-      - ".github/workflows/**"
-
-# Cancel in-progress runs of the same branch if a new push arrives
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+    branches: [ main ]
 
 jobs:
-  backend:
-    name: Backend — build & test
-    runs-on: self-hosted            # your runner
+  test:
+    runs-on: ubuntu-latest   # this is the free GitHub-hosted runner
     steps:
       - uses: actions/checkout@v4
 
-      # Java 21 (adjust if your project uses a different version)
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: '21'
 
-      # Detect Gradle vs Maven wrapper under back-end/
-      - name: Detect build tool
-        id: bt
-        shell: powershell
-        run: |
-          if (Test-Path "back-end\gradlew.bat") { "tool=gradle" >> $env:GITHUB_OUTPUT; exit 0 }
-          if (Test-Path "back-end\mvnw.cmd")    { "tool=maven"  >> $env:GITHUB_OUTPUT; exit 0 }
-          throw "No gradlew.bat or mvnw.cmd found under back-end/"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
 
-      # Gra
+      # avoid the common Linux permission issue for Windows commits
+      - name: Make Gradle wrapper executable
+        working-directory: back-end
+        run: chmod +x gradlew
+
+      - name: Build & test
+        working-directory: back-end
+        run: ./gradlew clean build --stacktrace
