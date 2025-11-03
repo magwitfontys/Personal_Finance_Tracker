@@ -1,7 +1,7 @@
 name: CD (manual)
 
 on:
-  workflow_dispatch:   # <-- manual trigger only
+  workflow_dispatch:  # run manually
 
 permissions:
   contents: read
@@ -20,34 +20,31 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          cache: gradle
 
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
-
+      # Gradle now lives at the repo root
       - name: Make Gradle wrapper executable
-        working-directory: back-end
         run: chmod +x gradlew
 
       - name: Build JAR
-        working-directory: back-end
-        run: ./gradlew clean build --stacktrace
+        run: ./gradlew clean build --no-daemon --stacktrace
 
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Dockerfile is at repo root after the flatten
       - name: Build & push image
         uses: docker/build-push-action@v6
         with:
-          context: back-end
+          context: .
+          file: ./Dockerfile
           push: true
           tags: |
             ${{ env.IMAGE }}:latest
