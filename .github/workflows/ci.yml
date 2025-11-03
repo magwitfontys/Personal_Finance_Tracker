@@ -2,34 +2,41 @@ name: CI (build & test)
 
 on:
   push:
-    branches: [ main ]   # change if your default branch is different
+    branches: [ "main" ]
   pull_request:
-    branches: [ main ]
+
+permissions:
+  contents: read
 
 jobs:
-  test:
-    runs-on: ubuntu-latest   # this is the free GitHub-hosted runner
-    steps:
-      - uses: actions/checkout@v4
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: .   # repo root
 
-      - uses: actions/setup-java@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (Temurin) with Gradle cache
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
+          cache: gradle
 
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
-
-      # avoid the common Linux permission issue for Windows commits
       - name: Make Gradle wrapper executable
-        working-directory: back-end
         run: chmod +x gradlew
 
       - name: Build & test
-        working-directory: back-end
-        run: ./gradlew clean build --stacktrace
+        run: ./gradlew clean build --no-daemon
+
+      # optional: publish the jar
+      - name: Upload artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: build/libs/*.jar
