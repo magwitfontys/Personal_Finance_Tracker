@@ -15,10 +15,8 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
                         .allowedOrigins(
-                                "http://localhost:8081", // if you serve a page from your backend later
-                                "http://localhost:5173", // Vite dev (if you use it)
-                                "http://localhost:3000", // CRA dev (if you use it)
-                                "http://127.0.0.1:5500", // VSCode Live Server
+                                "http://localhost:8081", // backend
+                                "http://localhost:5173", // Vite dev for frontend  
                                 "null" // file:// pages in Chrome report origin "null"
                 )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
