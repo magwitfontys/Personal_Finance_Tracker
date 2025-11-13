@@ -1,18 +1,15 @@
-version: "3.9"
-
 services:
-  mssql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: pft-mssql
-    environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_PID: "Developer"
-      SA_PASSWORD: "YourStrong!Passw0rd"
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: personal-finance-backend:dev
+    container_name: pft-backend
     ports:
-      - "1433:1433"
+      - "8081:8081"
     volumes:
-      - mssql-data:/var/opt/mssql
+      - backend-h2:/app/data
     restart: unless-stopped
 
 volumes:
-  mssql-data:
+  backend-h2:

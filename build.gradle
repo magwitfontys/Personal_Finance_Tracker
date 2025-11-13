@@ -9,25 +9,42 @@ version = '0.0.1-SNAPSHOT'
 description = 'back-end'
 
 java {
-    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
-repositories { mavenCentral() }
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+    // uncomment if you add Lombok later
+    // compileOnly { extendsFrom annotationProcessor }
+}
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-    //H2 database 
-    runtimeOnly 'com.h2database:h2'
-
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    // BCrypt for password hashing
+    // Password hashing (BCrypt)
     implementation 'org.springframework.security:spring-security-crypto'
 
+    // H2 database (file mode via application.yml)
+    runtimeOnly 'com.h2database:h2'
+
+    // Dev tools only in development (excluded from production runtime classpath)
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // testImplementation 'org.springframework.security:spring-security-test' // if you write security tests
 }
 
-
-tasks.named('test') { useJUnitPlatform() }
+tasks.named('test') {
+    useJUnitPlatform()
+}

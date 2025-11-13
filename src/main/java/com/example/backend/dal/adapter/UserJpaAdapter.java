@@ -20,7 +20,7 @@ public class UserJpaAdapter implements UserInterface {
         this.repo = repo;
     }
 
-    // -------------------- READ --------------------
+    // read
 
     @Override
     @Transactional(readOnly = true)
@@ -52,7 +52,7 @@ public class UserJpaAdapter implements UserInterface {
         return repo.findAll().stream().map(this::toDTO).toList();
     }
 
-    // -------------------- WRITE --------------------
+    // write
 
     @Override
     @Transactional
@@ -98,7 +98,7 @@ public class UserJpaAdapter implements UserInterface {
         return true;
     }
 
-    // -------------------- MAPPING --------------------
+    // mapping
 
     private UserDTO toDTO(UserEntity e) {
         // IMPORTANT: include passwordHash so AuthService.login() can verify
