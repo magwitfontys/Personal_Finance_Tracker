@@ -9,7 +9,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "categories", indexes = {
+@Table(name = "categories",schema = "dbo", indexes = {
         @Index(name = "ix_categories_id", columnList = "category_id", unique = true),
         @Index(name = "ix_categories_name", columnList = "name"),
         @Index(name = "ix_categories_is_income", columnList = "is_income")
