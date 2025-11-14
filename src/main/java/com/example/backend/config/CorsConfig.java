@@ -7,22 +7,21 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class CorsConfig {
+
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
-            @SuppressWarnings("null")
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
                         .allowedOrigins(
-                                "http://localhost:8081", // backend
-                                "http://localhost:5173", // Vite dev for frontend  
-                                "null" // file:// pages in Chrome report origin "null"
-                )
+                                "http://localhost:8081",
+                                "http://localhost:5173",
+                                "null"
+                        )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(false);
-                        
             }
         };
     }
