@@ -1,17 +1,32 @@
-# ---- build ----
+# syntax=docker/dockerfile:1
+
+########################
+# Build stage
+########################
 FROM eclipse-temurin:21-jdk AS build
+
+# Work in the app root (matches your repo layout)
 WORKDIR /app
+
+# Copy everything into the image
 COPY . .
-WORKDIR /app/back-end
-# normalize line endings (Windows) + make wrapper executable
+
+# Normalize Windows line endings for the Gradle wrapper and make it executable
 RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
+
+# Build the Spring Boot fat jar with Gradle
 RUN ./gradlew --no-daemon clean bootJar
 
-# ---- run ----
-FROM eclipse-temurin:21-jre
+########################
+# Runtime stage
+########################
+FROM eclipse-temurin:21-jre AS runtime
+
 WORKDIR /app
-COPY --from=build /app/back-end/build/libs/*.jar app.jar
-ENV SPRING_PROFILES_ACTIVE=h2
-VOLUME ["/app/data"]
+
+# Copy the built jar from the build stage
+COPY --from=build /app/build/libs/*.jar app.jar
+
 EXPOSE 8081
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+
+ENTRYPOINT ["java", " -jar", "app.jar"]
