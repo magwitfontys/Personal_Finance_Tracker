@@ -1,12 +1,12 @@
-import org.junit.jupiter.api.Test;
+// import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.fail;
+// import static org.junit.jupiter.api.Assertions.fail;
 
-public class PipelineFailureTest {
+// public class PipelineFailureTest {
 
-    @Test
-    void intentionallyFailingTest() {
-        // test that is expected to fail, to test the CI pipeline's failure handling
-        fail("Intentional failure to verify that the CI pipeline fails on test failures.");
-    }
-}
+//     @Test
+//     void intentionallyFailingTest() {
+//         // test that is expected to fail, to test the CI pipeline's failure handling
+//         fail("Intentional failure to verify that the CI pipeline fails on test failures.");
+//     }
+// }
