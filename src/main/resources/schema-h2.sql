@@ -21,6 +21,11 @@ CREATE TABLE IF NOT EXISTS dbo.users (
   created_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Insert default user for development (MERGE avoids duplicates)
+MERGE INTO dbo.users (user_id, username, password_hash, created_at) 
+KEY(user_id)
+VALUES (1, 'testuser', '$2a$10$dummyhashfordemo', CURRENT_TIMESTAMP);
+
 -- =========================
 -- CATEGORIES (global list)
 -- =========================

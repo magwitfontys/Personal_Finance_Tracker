@@ -101,7 +101,7 @@ public class UserJpaAdapter implements UserInterface {
     // mapping
 
     private UserDTO toDTO(UserEntity e) {
-        // IMPORTANT: include passwordHash so AuthService.login() can verify
+        // IMPORTANT: include passwordHash so AuthService.authenticate() can verify
         UserDTO d = new UserDTO();
         d.setId(e.getId());
         d.setUsername(e.getUsername());

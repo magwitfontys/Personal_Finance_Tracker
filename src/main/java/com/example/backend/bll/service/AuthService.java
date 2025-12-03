@@ -37,14 +37,18 @@ public class AuthService {
         return saved;
     }
 
-    // LOGIN
-    public boolean login(String username, String rawPassword) {
+    // AUTHENTICATE - returns user if valid, null otherwise
+    public UserDTO authenticate(String username, String rawPassword) {
         Optional<UserDTO> found = users.findByUsername(username);
         if (found.isEmpty()) {
-            return false;
+            return null;
         }
         var dto = found.get();
-        return passwordEncoder.matches(rawPassword, dto.getPasswordHash());
+        if (!passwordEncoder.matches(rawPassword, dto.getPasswordHash())) {
+            return null;
+        }
+        dto.setPasswordHash(null); // never return the hash
+        return dto;
     }
 
     public Optional<UserDTO> getById(Integer id) {
