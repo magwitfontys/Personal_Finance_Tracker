@@ -57,16 +57,16 @@ public class AuthController {
                     .body(new ErrorBody("Username and password are required."));
         }
 
-        boolean ok = auth.login(request.getUsername().trim(), request.getPassword());
-        if (!ok) {
+        UserDTO user = auth.authenticate(request.getUsername().trim(), request.getPassword());
+        if (user == null) {
             // Front-end will show this message and stay on the login page
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorBody("Invalid credentials"));
         }
 
-        // Keep it simple for now. If you add JWT later, return it here instead.
-        return ResponseEntity.ok(new SuccessBody(true));
+        // Return success with userId so frontend can store it
+        return ResponseEntity.ok(new LoginSuccessBody(true, user.getId()));
     }
 
     // --- Helpers & tiny JSON bodies so the front-end never breaks on empty
@@ -83,11 +83,13 @@ public class AuthController {
         }
     }
 
-    static class SuccessBody {
+    static class LoginSuccessBody {
         public final boolean success;
+        public final Integer userId;
 
-        SuccessBody(boolean success) {
+        LoginSuccessBody(boolean success, Integer userId) {
             this.success = success;
+            this.userId = userId;
         }
     }
 }
