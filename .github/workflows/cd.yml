@@ -1,7 +1,13 @@
-name: CD (manual)
+name: CD (auto on main + manual)
 
 on:
-  workflow_dispatch:  # run manually
+  # allow manual trigger from the Actions tab
+  workflow_dispatch:
+
+  # automatically run on every push to main (including merges)
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -22,7 +28,7 @@ jobs:
           java-version: '21'
           cache: gradle
 
-      # Gradle now lives at the repo root
+      # Gradle lives at the repo root
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
@@ -39,7 +45,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Dockerfile is at repo root after the flatten
+      # Dockerfile is at repo root
       - name: Build & push image
         uses: docker/build-push-action@v6
         with:
