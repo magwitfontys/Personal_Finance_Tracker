@@ -2,7 +2,9 @@ name: CI (build & test)
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - development
   pull_request:
 
 permissions:
