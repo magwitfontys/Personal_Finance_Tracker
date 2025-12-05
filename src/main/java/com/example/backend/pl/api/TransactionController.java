@@ -119,6 +119,39 @@ public class TransactionController {
         }
     }
 
+    /**
+     * PUT /api/transactions/{id}
+     * Updates an existing transaction by ID.
+     */
+    @PutMapping(path = "/{id}", consumes = "application/json")
+    public ResponseEntity<?> updateTransaction(@PathVariable Integer id, @Valid @RequestBody TransactionDTO request) {
+        if (request.getUserId() == null || request.getCategoryId() == null
+                || request.getAmount() == null || request.getTxnType() == null
+                || request.getTxnDate() == null) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorBody("Missing required fields: userId, categoryId, amount, txnType, txnDate"));
+        }
+
+        String type = request.getTxnType().trim().toUpperCase();
+        if (!type.equals("INCOME") && !type.equals("EXPENSE")) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorBody("txnType must be INCOME or EXPENSE"));
+        }
+        request.setTxnType(type);
+        request.setTransactionId(id);
+
+        try {
+            TransactionDTO updated = transactionService.save(request);
+            return ResponseEntity.ok(updated);
+        } catch (Exception ex) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorBody("Failed to update transaction: " + ex.getMessage()));
+        }
+    }
+
     // Simple error response body
     static class ErrorBody {
         public final String error;
