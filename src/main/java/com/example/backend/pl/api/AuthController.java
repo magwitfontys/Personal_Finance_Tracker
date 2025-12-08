@@ -69,6 +69,38 @@ public class AuthController {
         return ResponseEntity.ok(new LoginSuccessBody(true, user.getId()));
     }
 
+    /**
+     * DELETE /api/auth/delete-account
+     * Deletes the user account after password verification.
+     * Expected JSON body:
+     * {
+     *   "userId": 123,
+     *   "password": "user_password"
+     * }
+     */
+    @DeleteMapping(path = "/delete-account", consumes = "application/json")
+    public ResponseEntity<?> deleteAccount(@RequestBody DeleteAccountRequest request) {
+        if (request.getUserId() == null || isBlank(request.getPassword())) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorBody("userId and password are required."));
+        }
+
+        try {
+            boolean deleted = auth.deleteAccount(request.getUserId(), request.getPassword());
+            if (!deleted) {
+                return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(new ErrorBody("Invalid password"));
+            }
+            return ResponseEntity.noContent().build();
+        } catch (Exception ex) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorBody("Failed to delete account: " + ex.getMessage()));
+        }
+    }
+
     // --- Helpers & tiny JSON bodies so the front-end never breaks on empty
     // responses ---
     private static boolean isBlank(String s) {
@@ -90,6 +122,29 @@ public class AuthController {
         LoginSuccessBody(boolean success, Integer userId) {
             this.success = success;
             this.userId = userId;
+        }
+    }
+
+    static class DeleteAccountRequest {
+        private Integer userId;
+        private String password;
+
+        public DeleteAccountRequest() {}
+
+        public Integer getUserId() {
+            return userId;
+        }
+
+        public void setUserId(Integer userId) {
+            this.userId = userId;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
         }
     }
 }

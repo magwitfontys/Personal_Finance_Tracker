@@ -103,6 +103,24 @@ public class TransactionController {
     }
 
     /**
+     * DELETE /api/transactions/delete-all?userId=123
+     * Deletes all transactions for a specific user.
+     * Frontend: transactions page calls this when user confirms delete all.
+     * NOTE: This endpoint must come BEFORE the /{id} endpoint to avoid route matching conflicts.
+     */
+    @DeleteMapping("/delete-all")
+    public ResponseEntity<?> deleteAllTransactions(@RequestParam(required = true) Integer userId) {
+        try {
+            transactionService.deleteAllByUserId(userId);
+            return ResponseEntity.noContent().build();
+        } catch (Exception ex) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorBody("Failed to delete all transactions: " + ex.getMessage()));
+        }
+    }
+
+    /**
      * DELETE /api/transactions/{id}
      * Deletes a transaction by ID.
      * Frontend: transactions page calls this when user confirms deletion.
@@ -116,6 +134,39 @@ public class TransactionController {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ErrorBody("Failed to delete transaction: " + ex.getMessage()));
+        }
+    }
+
+    /**
+     * PUT /api/transactions/{id}
+     * Updates an existing transaction by ID.
+     */
+    @PutMapping(path = "/{id}", consumes = "application/json")
+    public ResponseEntity<?> updateTransaction(@PathVariable Integer id, @Valid @RequestBody TransactionDTO request) {
+        if (request.getUserId() == null || request.getCategoryId() == null
+                || request.getAmount() == null || request.getTxnType() == null
+                || request.getTxnDate() == null) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorBody("Missing required fields: userId, categoryId, amount, txnType, txnDate"));
+        }
+
+        String type = request.getTxnType().trim().toUpperCase();
+        if (!type.equals("INCOME") && !type.equals("EXPENSE")) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorBody("txnType must be INCOME or EXPENSE"));
+        }
+        request.setTxnType(type);
+        request.setTransactionId(id);
+
+        try {
+            TransactionDTO updated = transactionService.save(request);
+            return ResponseEntity.ok(updated);
+        } catch (Exception ex) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorBody("Failed to update transaction: " + ex.getMessage()));
         }
     }
 

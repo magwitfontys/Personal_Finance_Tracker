@@ -44,4 +44,8 @@ public class TransactionService {
     public void deleteById(Integer transactionId) {
         transactionPort.deleteById(transactionId);
     }
+
+    public void deleteAllByUserId(Integer userId) {
+        transactionPort.deleteAllByUserId(userId);
+    }
 }
