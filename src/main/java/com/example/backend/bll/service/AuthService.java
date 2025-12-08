@@ -54,4 +54,21 @@ public class AuthService {
     public Optional<UserDTO> getById(Integer id) {
         return users.findById(id);
     }
+
+    // DELETE ACCOUNT - verifies password and deletes the user
+    public boolean deleteAccount(Integer userId, String rawPassword) {
+        Optional<UserDTO> found = users.findById(userId);
+        if (found.isEmpty()) {
+            return false;
+        }
+        
+        var dto = found.get();
+        // Verify password matches
+        if (!passwordEncoder.matches(rawPassword, dto.getPasswordHash())) {
+            return false;
+        }
+        
+        // Delete the account (cascades to transactions)
+        return users.deleteById(userId);
+    }
 }

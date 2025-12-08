@@ -20,4 +20,7 @@ public interface TransactionJpaRepository extends JpaRepository<TransactionEntit
             Integer categoryId,
             String txnType
     );
+
+    // delete all transactions for a user
+    void deleteByUserId(Integer userId);
 }

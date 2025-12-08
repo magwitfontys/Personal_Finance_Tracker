@@ -103,6 +103,24 @@ public class TransactionController {
     }
 
     /**
+     * DELETE /api/transactions/delete-all?userId=123
+     * Deletes all transactions for a specific user.
+     * Frontend: transactions page calls this when user confirms delete all.
+     * NOTE: This endpoint must come BEFORE the /{id} endpoint to avoid route matching conflicts.
+     */
+    @DeleteMapping("/delete-all")
+    public ResponseEntity<?> deleteAllTransactions(@RequestParam(required = true) Integer userId) {
+        try {
+            transactionService.deleteAllByUserId(userId);
+            return ResponseEntity.noContent().build();
+        } catch (Exception ex) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorBody("Failed to delete all transactions: " + ex.getMessage()));
+        }
+    }
+
+    /**
      * DELETE /api/transactions/{id}
      * Deletes a transaction by ID.
      * Frontend: transactions page calls this when user confirms deletion.

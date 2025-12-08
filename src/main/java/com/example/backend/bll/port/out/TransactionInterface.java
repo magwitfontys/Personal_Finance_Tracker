@@ -24,4 +24,6 @@ public interface TransactionInterface {
     
     void deleteById(Integer id);
 
+    void deleteAllByUserId(Integer userId);
+
 }
