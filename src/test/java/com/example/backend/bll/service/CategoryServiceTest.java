@@ -30,8 +30,8 @@ class CategoryServiceTest {
     @Test
     void testGetAllCategories() {
         // Arrange
-        CategoryDTO salary = new CategoryDTO(1L, "Salary", true);
-        CategoryDTO groceries = new CategoryDTO(2L, "Groceries", false);
+        CategoryDTO salary = new CategoryDTO(1, "Salary", true);
+        CategoryDTO groceries = new CategoryDTO(2, "Groceries", false);
         List<CategoryDTO> mockCategories = Arrays.asList(salary, groceries);
         
         when(categoryRepository.findAll()).thenReturn(mockCategories);
