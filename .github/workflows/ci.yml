@@ -32,10 +32,10 @@ jobs:
           cache: gradle
 
       - name: Make Gradle wrapper executable
-        run: chmod +x gradlew
+        run: cd back-end && chmod +x gradlew
 
       - name: Build & test
-        run: ./gradlew clean build --no-daemon
+        run: cd back-end && ./gradlew clean build --no-daemon
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
