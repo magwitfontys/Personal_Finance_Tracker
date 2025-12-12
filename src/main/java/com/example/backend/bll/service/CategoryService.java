@@ -32,7 +32,6 @@ public class CategoryService {
         return categories.findByName(name);
     }
 
-    // Optional helpers if you only need names:
     public List<String> getIncomeNames() {
         return getIncomeCategories().stream().map(CategoryDTO::getName).toList();
     }
