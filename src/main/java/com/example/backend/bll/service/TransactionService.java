@@ -36,4 +36,16 @@ public class TransactionService {
 
         return transactionPort.searchTransactions(userId, description, categoryId, txnType);
     }
+    
+    public TransactionDTO save(TransactionDTO transaction) {
+        return transactionPort.save(transaction);
+    }
+
+    public void deleteById(Integer transactionId) {
+        transactionPort.deleteById(transactionId);
+    }
+
+    public void deleteAllByUserId(Integer userId) {
+        transactionPort.deleteAllByUserId(userId);
+    }
 }

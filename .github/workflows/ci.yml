@@ -2,7 +2,9 @@ name: CI (build & test)
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - development
   pull_request:
 
 permissions:
@@ -19,6 +21,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 21 (Temurin) with Gradle cache
         uses: actions/setup-java@v4
@@ -32,6 +36,22 @@ jobs:
 
       - name: Build & test
         run: ./gradlew clean build --no-daemon
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          args: >
+            -Dsonar.projectKey=magwitfontys_Personal_Finance_Tracker
+            -Dsonar.organization=magwitfontys
+            -Dsonar.sources=src/main/java
+            -Dsonar.tests=src/test/java
+            -Dsonar.java.source=21
+            -Dsonar.java.binaries=build/classes/java/main
+            -Dsonar.exclusions=**/gradle/**,**/*.gradle,**/target/**
+            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       # optional: publish the jar
       - name: Upload artifact

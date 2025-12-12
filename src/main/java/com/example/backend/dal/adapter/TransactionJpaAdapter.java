@@ -94,6 +94,12 @@ public class TransactionJpaAdapter implements TransactionInterface {
         repo.deleteById(transactionId);
     }
 
+    @Override
+    @Transactional
+    public void deleteAllByUserId(Integer userId) {
+        repo.deleteByUserId(userId);
+    }
+
     // =========================
     // Mapper helpers
     // =========================

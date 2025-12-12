@@ -37,17 +37,38 @@ public class AuthService {
         return saved;
     }
 
-    // LOGIN
-    public boolean login(String username, String rawPassword) {
+    // AUTHENTICATE - returns user if valid, null otherwise
+    public UserDTO authenticate(String username, String rawPassword) {
         Optional<UserDTO> found = users.findByUsername(username);
         if (found.isEmpty()) {
-            return false;
+            return null;
         }
         var dto = found.get();
-        return passwordEncoder.matches(rawPassword, dto.getPasswordHash());
+        if (!passwordEncoder.matches(rawPassword, dto.getPasswordHash())) {
+            return null;
+        }
+        dto.setPasswordHash(null); // never return the hash
+        return dto;
     }
 
     public Optional<UserDTO> getById(Integer id) {
         return users.findById(id);
+    }
+
+    // DELETE ACCOUNT - verifies password and deletes the user
+    public boolean deleteAccount(Integer userId, String rawPassword) {
+        Optional<UserDTO> found = users.findById(userId);
+        if (found.isEmpty()) {
+            return false;
+        }
+        
+        var dto = found.get();
+        // Verify password matches
+        if (!passwordEncoder.matches(rawPassword, dto.getPasswordHash())) {
+            return false;
+        }
+        
+        // Delete the account (cascades to transactions)
+        return users.deleteById(userId);
     }
 }
