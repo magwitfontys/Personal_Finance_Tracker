@@ -31,14 +31,16 @@ class CategoryService_getOutcomeNames_ReturnsNamesOnly {
     void getOutcomeNames_returnsNamesOnly() {
         CategoryDTO groceries = new CategoryDTO(1, "Groceries", false);
         CategoryDTO utilities = new CategoryDTO(2, "Utilities", false);
-        List<CategoryDTO> outcome = Arrays.asList(groceries, utilities);
+        CategoryDTO salary = new CategoryDTO(3, "Salary", true); // opposite type
+        List<CategoryDTO> mixed = Arrays.asList(groceries, utilities, salary);
 
-        when(categoryRepository.findByIncome(false)).thenReturn(outcome);
+        when(categoryRepository.findByIncome(false)).thenReturn(mixed);
 
         List<String> result = categoryService.getOutcomeNames();
 
         assertEquals(2, result.size());
         assertTrue(result.contains("Groceries"));
         assertTrue(result.contains("Utilities"));
+        assertFalse(result.contains("Salary"));
     }
 }

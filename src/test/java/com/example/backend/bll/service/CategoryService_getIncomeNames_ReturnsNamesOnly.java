@@ -31,14 +31,16 @@ class CategoryService_getIncomeNames_ReturnsNamesOnly {
     void getIncomeNames_returnsNamesOnly() {
         CategoryDTO salary = new CategoryDTO(1, "Salary", true);
         CategoryDTO bonus = new CategoryDTO(2, "Bonus", true);
-        List<CategoryDTO> income = Arrays.asList(salary, bonus);
+        CategoryDTO groceries = new CategoryDTO(3, "Groceries", false); // opposite type
+        List<CategoryDTO> mixed = Arrays.asList(salary, bonus, groceries);
 
-        when(categoryRepository.findByIncome(true)).thenReturn(income);
+        when(categoryRepository.findByIncome(true)).thenReturn(mixed);
 
         List<String> result = categoryService.getIncomeNames();
 
         assertEquals(2, result.size());
         assertTrue(result.contains("Salary"));
         assertTrue(result.contains("Bonus"));
+        assertFalse(result.contains("Groceries"));
     }
 }

@@ -33,10 +33,16 @@ public class CategoryService {
     }
 
     public List<String> getIncomeNames() {
-        return getIncomeCategories().stream().map(CategoryDTO::getName).toList();
+        return getIncomeCategories().stream()
+                .filter(CategoryDTO::isIncome)
+                .map(CategoryDTO::getName)
+                .toList();
     }
 
     public List<String> getOutcomeNames() {
-        return getOutcomeCategories().stream().map(CategoryDTO::getName).toList();
+        return getOutcomeCategories().stream()
+                .filter(category -> !category.isIncome())
+                .map(CategoryDTO::getName)
+                .toList();
     }
 }
