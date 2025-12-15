@@ -8,14 +8,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CategoryServiceTest {
+class CategoryService_getByName_NotFoundReturnsEmpty {
 
     @Mock
     private CategoryInterface categoryRepository;
@@ -28,20 +27,12 @@ class CategoryServiceTest {
     }
 
     @Test
-    void testGetAllCategories() {
-        // Arrange
-        CategoryDTO salary = new CategoryDTO(1, "Salary", true);
-        CategoryDTO groceries = new CategoryDTO(2, "Groceries", false);
-        List<CategoryDTO> mockCategories = Arrays.asList(salary, groceries);
-        
-        when(categoryRepository.findAll()).thenReturn(mockCategories);
+    void getByName_notFoundReturnsEmpty() {
+        when(categoryRepository.findByName("Missing")).thenReturn(Optional.empty());
 
-        // Act
-        List<CategoryDTO> result = categoryService.getAll();
+        Optional<CategoryDTO> result = categoryService.getByName("Missing");
 
-        // Assert
-        assertEquals(2, result.size());
-        assertEquals("Salary", result.get(0).getName());
-        verify(categoryRepository, times(1)).findAll();
+        assertTrue(result.isEmpty());
+        verify(categoryRepository, times(1)).findByName("Missing");
     }
 }
