@@ -37,7 +37,7 @@ class AuthService_getById_UserNotFoundReturnsEmpty {
         when(users.findById(userId)).thenReturn(Optional.empty());
 
         // Act
-        Optional result = authService.getById(userId);
+        Optional<com.example.backend.bll.dto.UserDTO> result = authService.getById(userId);
 
         // Assert
         assertTrue(result.isEmpty());
