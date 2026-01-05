@@ -2,6 +2,7 @@ package com.example.backend.pl.api;
 
 import com.example.backend.bll.dto.TransactionDTO;
 import com.example.backend.bll.service.TransactionService;
+import com.example.backend.pl.exception.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -76,30 +77,20 @@ public class TransactionController {
         if (request.getUserId() == null || request.getCategoryId() == null 
                 || request.getAmount() == null || request.getTxnType() == null
                 || request.getTxnDate() == null) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorBody("Missing required fields: userId, categoryId, amount, txnType, txnDate"));
+            throw new IllegalArgumentException("Missing required fields: userId, categoryId, amount, txnType, txnDate");
         }
 
         // Normalize txnType to uppercase
         String type = request.getTxnType().trim().toUpperCase();
         if (!type.equals("INCOME") && !type.equals("EXPENSE")) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorBody("txnType must be INCOME or EXPENSE"));
+            throw new IllegalArgumentException("txnType must be INCOME or EXPENSE");
         }
         request.setTxnType(type);
 
-        try {
-            TransactionDTO created = transactionService.save(request);
-            return ResponseEntity
-                    .created(URI.create("/api/transactions/" + created.getTransactionId()))
-                    .body(created);
-        } catch (Exception ex) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorBody("Failed to create transaction: " + ex.getMessage()));
-        }
+        TransactionDTO created = transactionService.save(request);
+        return ResponseEntity
+                .created(URI.create("/api/transactions/" + created.getTransactionId()))
+                .body(created);
     }
 
     /**
@@ -110,14 +101,8 @@ public class TransactionController {
      */
     @DeleteMapping("/delete-all")
     public ResponseEntity<?> deleteAllTransactions(@RequestParam(required = true) Integer userId) {
-        try {
-            transactionService.deleteAllByUserId(userId);
-            return ResponseEntity.noContent().build();
-        } catch (Exception ex) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorBody("Failed to delete all transactions: " + ex.getMessage()));
-        }
+        transactionService.deleteAllByUserId(userId);
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -127,14 +112,8 @@ public class TransactionController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteTransaction(@PathVariable Integer id) {
-        try {
-            transactionService.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception ex) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorBody("Failed to delete transaction: " + ex.getMessage()));
-        }
+        transactionService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -146,36 +125,19 @@ public class TransactionController {
         if (request.getUserId() == null || request.getCategoryId() == null
                 || request.getAmount() == null || request.getTxnType() == null
                 || request.getTxnDate() == null) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorBody("Missing required fields: userId, categoryId, amount, txnType, txnDate"));
+            throw new IllegalArgumentException("Missing required fields: userId, categoryId, amount, txnType, txnDate");
         }
 
         String type = request.getTxnType().trim().toUpperCase();
         if (!type.equals("INCOME") && !type.equals("EXPENSE")) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorBody("txnType must be INCOME or EXPENSE"));
+            throw new IllegalArgumentException("txnType must be INCOME or EXPENSE");
         }
         request.setTxnType(type);
         request.setTransactionId(id);
 
-        try {
-            TransactionDTO updated = transactionService.save(request);
-            return ResponseEntity.ok(updated);
-        } catch (Exception ex) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorBody("Failed to update transaction: " + ex.getMessage()));
-        }
+        TransactionDTO updated = transactionService.save(request);
+        return ResponseEntity.ok(updated);
     }
 
-    // Simple error response body
-    static class ErrorBody {
-        public final String error;
 
-        ErrorBody(String error) {
-            this.error = error;
-        }
-    }
 }

@@ -4,6 +4,7 @@ import com.example.backend.bll.dto.LoginRequest;
 import com.example.backend.bll.dto.RegisterRequest;
 import com.example.backend.bll.dto.UserDTO;
 import com.example.backend.bll.service.AuthService;
+import com.example.backend.pl.exception.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,40 +30,25 @@ public class AuthController {
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         // Basic guard in case DTO validation is not present
         if (isBlank(request.getUsername()) || isBlank(request.getPassword())) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorBody("Username and password are required."));
+            throw new IllegalArgumentException("Username and password are required.");
         }
 
-        try {
-            UserDTO created = auth.register(request.getUsername().trim(), request.getPassword());
-            // Location header points to the new user resource (adjust if your users route
-            // differs)
-            return ResponseEntity
-                    .created(URI.create("/api/users/" + created.getId()))
-                    .body(created);
-        } catch (IllegalArgumentException ex) {
-            // e.g., username already taken
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body(new ErrorBody(ex.getMessage()));
-        }
+        UserDTO created = auth.register(request.getUsername().trim(), request.getPassword());
+        // Location header points to the new user resource (adjust if your users route differs)
+        return ResponseEntity
+                .created(URI.create("/api/users/" + created.getId()))
+                .body(created);
     }
 
     @PostMapping(path = "/login", consumes = "application/json")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         if (isBlank(request.getUsername()) || isBlank(request.getPassword())) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorBody("Username and password are required."));
+            throw new IllegalArgumentException("Username and password are required.");
         }
 
         UserDTO user = auth.authenticate(request.getUsername().trim(), request.getPassword());
         if (user == null) {
-            // Front-end will show this message and stay on the login page
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorBody("Invalid credentials"));
+            throw new EntityNotFoundException("Invalid credentials");
         }
 
         // Return success with userId so frontend can store it
@@ -81,38 +67,20 @@ public class AuthController {
     @DeleteMapping(path = "/delete-account", consumes = "application/json")
     public ResponseEntity<?> deleteAccount(@RequestBody DeleteAccountRequest request) {
         if (request.getUserId() == null || isBlank(request.getPassword())) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorBody("userId and password are required."));
+            throw new IllegalArgumentException("userId and password are required.");
         }
 
-        try {
-            boolean deleted = auth.deleteAccount(request.getUserId(), request.getPassword());
-            if (!deleted) {
-                return ResponseEntity
-                        .status(HttpStatus.UNAUTHORIZED)
-                        .body(new ErrorBody("Invalid password"));
-            }
-            return ResponseEntity.noContent().build();
-        } catch (Exception ex) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorBody("Failed to delete account: " + ex.getMessage()));
+        boolean deleted = auth.deleteAccount(request.getUserId(), request.getPassword());
+        if (!deleted) {
+            throw new EntityNotFoundException("Invalid password");
         }
+        return ResponseEntity.noContent().build();
     }
 
     // --- Helpers & tiny JSON bodies so the front-end never breaks on empty
     // responses ---
     private static boolean isBlank(String s) {
         return s == null || s.trim().isEmpty();
-    }
-
-    static class ErrorBody {
-        public final String error;
-
-        ErrorBody(String error) {
-            this.error = error;
-        }
     }
 
     static class LoginSuccessBody {
