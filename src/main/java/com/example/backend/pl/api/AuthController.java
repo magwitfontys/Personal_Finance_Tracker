@@ -6,7 +6,6 @@ import com.example.backend.bll.dto.UserDTO;
 import com.example.backend.bll.service.AuthService;
 import com.example.backend.pl.exception.EntityNotFoundException;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

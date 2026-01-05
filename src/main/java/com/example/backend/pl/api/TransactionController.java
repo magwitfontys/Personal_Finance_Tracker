@@ -2,9 +2,7 @@ package com.example.backend.pl.api;
 
 import com.example.backend.bll.dto.TransactionDTO;
 import com.example.backend.bll.service.TransactionService;
-import com.example.backend.pl.exception.EntityNotFoundException;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
