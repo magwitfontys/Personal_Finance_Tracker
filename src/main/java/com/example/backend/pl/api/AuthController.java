@@ -16,10 +16,6 @@ import java.net.URI;
 
 @RestController
 @RequestMapping(path = "/api/auth", produces = "application/json")
-@CrossOrigin(origins = {
-        "http://localhost:5173", "http://127.0.0.1:5173",
-        "http://localhost:4173", "http://127.0.0.1:4173"
-})
 public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);

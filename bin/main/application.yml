@@ -17,12 +17,16 @@ spring:
 
   h2:
     console:
-      enabled: true
+      # H2 console disabled by default for security
+      # Enable in application-dev.yml for development
+      enabled: ${H2_CONSOLE_ENABLED:false}
       path: /h2-console
   datasource:
-    url: "jdbc:h2:file:./data/pfdb;MODE=MSSQLServer;DATABASE_TO_UPPER=false;INIT=CREATE SCHEMA IF NOT EXISTS dbo"
-    username: magwit
-    password: password
+    # Use environment variables for database credentials
+    # For local dev, set these in your IDE run configuration or .env file
+    url: ${DB_URL:jdbc:h2:file:./data/pfdb;MODE=MSSQLServer;DATABASE_TO_UPPER=false;INIT=CREATE SCHEMA IF NOT EXISTS dbo}
+    username: ${DB_USERNAME:magwit}
+    password: ${DB_PASSWORD:password}
     driver-class-name: org.h2.Driver
   jpa:
     hibernate:
@@ -31,3 +35,19 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
         '[default_schema]': dbo
+
+# CORS configuration
+# For production, override with your deployed front-end URL
+cors:
+  allowed-origins:
+    - ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  allowed-methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowed-headers:
+    - Content-Type
+    - Authorization
+  allow-credentials: false
