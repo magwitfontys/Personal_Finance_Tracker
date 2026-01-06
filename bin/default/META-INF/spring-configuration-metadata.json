@@ -28,8 +28,5 @@
       "sourceType": "com.example.backend.config.CorsConfig"
     }
   ],
-  "hints": [],
-  "ignored": {
-    "properties": []
-  }
+  "hints": []
 }
