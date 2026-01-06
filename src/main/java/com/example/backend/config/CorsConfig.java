@@ -64,6 +64,12 @@ public class CorsConfig {
                         .allowedMethods(allowedMethods.toArray(new String[0]))
                         .allowedHeaders(allowedHeaders.toArray(new String[0]))
                         .allowCredentials(allowCredentials);
+                
+                // Allow H2 console access (only when enabled via dev profile or env var)
+                registry.addMapping("/h2-console/**")
+                        .allowedOrigins("*")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*");
             }
         };
     }
