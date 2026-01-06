@@ -3,8 +3,8 @@
 
 logging:
   level:
-    com.example.backend: DEBUG
-    com.example.backend.pl.exception: DEBUG
+    '[com.example.backend]': DEBUG
+    '[com.example.backend.pl.exception]': DEBUG
 
 spring:
   h2:
