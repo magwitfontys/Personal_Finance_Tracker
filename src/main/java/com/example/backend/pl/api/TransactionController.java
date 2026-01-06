@@ -3,6 +3,8 @@ package com.example.backend.pl.api;
 import com.example.backend.bll.dto.TransactionDTO;
 import com.example.backend.bll.service.TransactionService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +19,7 @@ import java.util.List;
 })
 public class TransactionController {
 
+    private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);
     private final TransactionService transactionService;
 
     public TransactionController(TransactionService transactionService) {
@@ -86,6 +89,8 @@ public class TransactionController {
         request.setTxnType(type);
 
         TransactionDTO created = transactionService.save(request);
+        logger.info("action=CREATE_TRANSACTION, userId={}, transactionId={}, type={}, amount={}, result=SUCCESS", 
+                    request.getUserId(), created.getTransactionId(), created.getTxnType(), created.getAmount());
         return ResponseEntity
                 .created(URI.create("/api/transactions/" + created.getTransactionId()))
                 .body(created);
@@ -100,6 +105,7 @@ public class TransactionController {
     @DeleteMapping("/delete-all")
     public ResponseEntity<?> deleteAllTransactions(@RequestParam(required = true) Integer userId) {
         transactionService.deleteAllByUserId(userId);
+        logger.info("action=DELETE_ALL_TRANSACTIONS, userId={}, result=SUCCESS", userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -111,6 +117,7 @@ public class TransactionController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteTransaction(@PathVariable Integer id) {
         transactionService.deleteById(id);
+        logger.info("action=DELETE_TRANSACTION, transactionId={}, result=SUCCESS", id);
         return ResponseEntity.noContent().build();
     }
 
@@ -134,6 +141,8 @@ public class TransactionController {
         request.setTransactionId(id);
 
         TransactionDTO updated = transactionService.save(request);
+        logger.info("action=UPDATE_TRANSACTION, userId={}, transactionId={}, type={}, amount={}, result=SUCCESS", 
+                    request.getUserId(), id, updated.getTxnType(), updated.getAmount());
         return ResponseEntity.ok(updated);
     }
 

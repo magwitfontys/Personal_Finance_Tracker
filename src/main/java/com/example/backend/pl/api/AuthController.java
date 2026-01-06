@@ -5,7 +5,10 @@ import com.example.backend.bll.dto.RegisterRequest;
 import com.example.backend.bll.dto.UserDTO;
 import com.example.backend.bll.service.AuthService;
 import com.example.backend.pl.exception.EntityNotFoundException;
+import com.example.backend.pl.exception.UnauthorizedException;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +22,7 @@ import java.net.URI;
 })
 public class AuthController {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     private final AuthService auth;
 
     public AuthController(AuthService auth) {
@@ -41,15 +45,20 @@ public class AuthController {
 
     @PostMapping(path = "/login", consumes = "application/json")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        String username = request.getUsername() != null ? request.getUsername().trim() : null;
+        
         if (isBlank(request.getUsername()) || isBlank(request.getPassword())) {
+            logger.warn("action=LOGIN, username={}, result=FAILURE, reason=missing_credentials", username);
             throw new IllegalArgumentException("Username and password are required.");
         }
 
-        UserDTO user = auth.authenticate(request.getUsername().trim(), request.getPassword());
+        UserDTO user = auth.authenticate(username, request.getPassword());
         if (user == null) {
-            throw new EntityNotFoundException("Invalid credentials");
+            logger.warn("action=LOGIN, username={}, result=FAILURE, reason=invalid_credentials", username);
+            throw new UnauthorizedException("Invalid credentials");
         }
 
+        logger.info("action=LOGIN, username={}, userId={}, result=SUCCESS", username, user.getId());
         // Return success with userId so frontend can store it
         return ResponseEntity.ok(new LoginSuccessBody(true, user.getId()));
     }
@@ -66,13 +75,17 @@ public class AuthController {
     @DeleteMapping(path = "/delete-account", consumes = "application/json")
     public ResponseEntity<?> deleteAccount(@RequestBody DeleteAccountRequest request) {
         if (request.getUserId() == null || isBlank(request.getPassword())) {
+            logger.warn("action=DELETE_ACCOUNT, userId={}, result=FAILURE, reason=missing_fields", request.getUserId());
             throw new IllegalArgumentException("userId and password are required.");
         }
 
         boolean deleted = auth.deleteAccount(request.getUserId(), request.getPassword());
         if (!deleted) {
+            logger.warn("action=DELETE_ACCOUNT, userId={}, result=FAILURE, reason=invalid_password", request.getUserId());
             throw new EntityNotFoundException("Invalid password");
         }
+        
+        logger.info("action=DELETE_ACCOUNT, userId={}, result=SUCCESS", request.getUserId());
         return ResponseEntity.noContent().build();
     }
 

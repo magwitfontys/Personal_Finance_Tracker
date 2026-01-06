@@ -34,6 +34,18 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles unauthorized/authentication exceptions.
+     * Returns the original error message (e.g., "Invalid credentials") with 401 status.
+     */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<?> handleUnauthorized(UnauthorizedException ex) {
+        logger.warn("Unauthorized access attempt: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new SimpleErrorResponse(ex.getMessage()));
+    }
+
+    /**
      * Handles entity not found exceptions.
      * Returns a generic error message with an error reference.
      */
@@ -83,6 +95,17 @@ public class GlobalExceptionHandler {
         ErrorResponse(String error, String errorId) {
             this.error = error;
             this.errorId = errorId;
+        }
+    }
+
+    /**
+     * Simple error response with just an error message (for authentication errors).
+     */
+    static class SimpleErrorResponse {
+        public final String error;
+
+        SimpleErrorResponse(String error) {
+            this.error = error;
         }
     }
 }
