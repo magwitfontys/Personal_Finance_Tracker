@@ -1,0 +1,35 @@
+{
+  "groups": [
+    {
+      "name": "cors",
+      "type": "com.example.backend.config.CorsConfig",
+      "sourceType": "com.example.backend.config.CorsConfig"
+    }
+  ],
+  "properties": [
+    {
+      "name": "cors.allow-credentials",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.example.backend.config.CorsConfig"
+    },
+    {
+      "name": "cors.allowed-headers",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "com.example.backend.config.CorsConfig"
+    },
+    {
+      "name": "cors.allowed-methods",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "com.example.backend.config.CorsConfig"
+    },
+    {
+      "name": "cors.allowed-origins",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "com.example.backend.config.CorsConfig"
+    }
+  ],
+  "hints": [],
+  "ignored": {
+    "properties": []
+  }
+}

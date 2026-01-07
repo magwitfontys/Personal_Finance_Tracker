@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.8'
+    id 'org.springframework.boot' version '3.5.9'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'jacoco'
 }
@@ -35,6 +35,9 @@ dependencies {
 
     // Password hashing (BCrypt)
     implementation 'org.springframework.security:spring-security-crypto'
+
+    // Configuration processor for custom properties (generates metadata for IDE autocomplete)
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     // H2 database (file mode via application.yml)
     runtimeOnly 'com.h2database:h2'
@@ -75,3 +78,9 @@ jacocoTestCoverageVerification {
 }
 
 check.dependsOn jacocoTestCoverageVerification
+
+// Dependency scanning for supply chain security:
+// - npm audit: cd front-end && npm audit (fast, built-in)
+// - Dependabot: GitHub automated dependency updates (built-in)
+// These cover A03: Software Supply Chain Failures without build overhead
+

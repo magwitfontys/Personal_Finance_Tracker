@@ -1,0 +1,37 @@
+# Development-only configuration
+# Activate with: --spring.profiles.active=dev or SPRING_PROFILES_ACTIVE=dev
+
+logging:
+  level:
+    '[com.example.backend]': DEBUG
+    '[com.example.backend.pl.exception]': DEBUG
+
+spring:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  # Development datasource (optional - can override for testing)
+  datasource:
+    url: "jdbc:h2:file:./data/pfdb;MODE=MSSQLServer;DATABASE_TO_UPPER=false;INIT=CREATE SCHEMA IF NOT EXISTS dbo"
+    username: magwit
+    password: password
+
+# CORS configuration for development (multiple origins supported)
+cors:
+  allowed-origins:
+    - http://localhost:5173
+    - http://127.0.0.1:5173
+    - http://localhost:4173
+    - http://127.0.0.1:4173
+  allowed-methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowed-headers:
+    - Content-Type
+    - Authorization
+  allow-credentials: false
