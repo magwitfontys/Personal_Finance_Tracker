@@ -38,7 +38,7 @@ jobs:
         run: ./gradlew clean build --no-daemon
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
+        uses: SonarSource/sonarcloud-github-action@v5
         with:
           args: >
             -Dsonar.projectKey=magwitfontys_Personal_Finance_Tracker
