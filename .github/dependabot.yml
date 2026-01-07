@@ -4,9 +4,8 @@ updates:
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "wednesday"
-      time: "10:00"
+      interval: "daily"
+      time: "12:00"
     open-pull-requests-limit: 5
     pull-request-branch-name:
       separator: "/"
