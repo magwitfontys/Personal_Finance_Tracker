@@ -11,7 +11,7 @@ logging:
 spring:
   sql:
     init:
-      mode: always
+      mode: never
       schema-locations: classpath:schema-h2.sql
       data-locations: classpath:data-h2.sql
 

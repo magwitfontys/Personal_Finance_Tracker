@@ -4,12 +4,8 @@
 
 CREATE SCHEMA IF NOT EXISTS dbo;
 
--- --- Clean up previous objects (safe if first run) ---
-DROP TABLE IF EXISTS dbo.transactions;
-DROP TABLE IF EXISTS dbo.budgets;
-DROP TABLE IF EXISTS dbo.budget_categories;
-DROP TABLE IF EXISTS dbo.categories;
-DROP TABLE IF EXISTS dbo.accounts; -- no longer used
+-- Note: All DROP TABLE statements have been removed to preserve data across restarts
+-- Tables are created with CREATE TABLE IF NOT EXISTS for safety
 
 -- =========================
 -- USERS

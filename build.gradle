@@ -47,6 +47,10 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     // testImplementation 'org.springframework.security:spring-security-test' // if you write security tests
+
+    // Selenium for UI E2E testing (compatible versions)
+    testImplementation 'org.seleniumhq.selenium:selenium-java:4.18.1'
+    testImplementation 'io.github.bonigarcia:webdrivermanager:5.7.0' // Auto-downloads ChromeDriver/GeckoDriver
 }
 
 tasks.named('test') {

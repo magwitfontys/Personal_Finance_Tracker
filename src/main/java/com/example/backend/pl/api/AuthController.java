@@ -5,6 +5,7 @@ import com.example.backend.bll.dto.RegisterRequest;
 import com.example.backend.bll.dto.UserDTO;
 import com.example.backend.bll.service.AuthService;
 import com.example.backend.pl.exception.EntityNotFoundException;
+import com.example.backend.pl.exception.RegistrationException;
 import com.example.backend.pl.exception.UnauthorizedException;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -29,14 +30,19 @@ public class AuthController {
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         // Basic guard in case DTO validation is not present
         if (isBlank(request.getUsername()) || isBlank(request.getPassword())) {
-            throw new IllegalArgumentException("Username and password are required.");
+            throw new RegistrationException("Username and password are required.");
         }
 
-        UserDTO created = auth.register(request.getUsername().trim(), request.getPassword());
-        // Location header points to the new user resource (adjust if your users route differs)
-        return ResponseEntity
-                .created(URI.create("/api/users/" + created.getId()))
-                .body(created);
+        try {
+            UserDTO created = auth.register(request.getUsername().trim(), request.getPassword());
+            // Location header points to the new user resource (adjust if your users route differs)
+            return ResponseEntity
+                    .created(URI.create("/api/users/" + created.getId()))
+                    .body(created);
+        } catch (IllegalArgumentException e) {
+            // Convert IllegalArgumentException to RegistrationException to return specific error message
+            throw new RegistrationException(e.getMessage());
+        }
     }
 
     @PostMapping(path = "/login", consumes = "application/json")
@@ -57,6 +63,29 @@ public class AuthController {
         logger.info("action=LOGIN, username={}, userId={}, result=SUCCESS", username, user.getId());
         // Return success with userId so frontend can store it
         return ResponseEntity.ok(new LoginSuccessBody(true, user.getId()));
+    }
+
+    /**
+     * GET /api/auth/verify
+     * Verifies if a user session is still valid.
+     * Query param: userId - the ID of the user to verify
+     * Returns 200 with user data if valid, 401 if invalid/not found
+     */
+    @GetMapping(path = "/verify")
+    public ResponseEntity<?> verify(@RequestParam(value = "userId", required = false) Integer userId) {
+        if (userId == null) {
+            logger.warn("action=VERIFY, result=FAILURE, reason=missing_userId");
+            return ResponseEntity.status(401).body(new ErrorBody("userId parameter is required"));
+        }
+
+        var user = auth.getById(userId);
+        if (user.isEmpty()) {
+            logger.warn("action=VERIFY, userId={}, result=FAILURE, reason=user_not_found", userId);
+            return ResponseEntity.status(401).body(new ErrorBody("User not found"));
+        }
+
+        logger.debug("action=VERIFY, userId={}, result=SUCCESS", userId);
+        return ResponseEntity.ok(new VerifySuccessBody(true, user.get().getId(), user.get().getUsername()));
     }
 
     /**
@@ -98,6 +127,26 @@ public class AuthController {
         LoginSuccessBody(boolean success, Integer userId) {
             this.success = success;
             this.userId = userId;
+        }
+    }
+
+    static class VerifySuccessBody {
+        public final boolean success;
+        public final Integer userId;
+        public final String username;
+
+        VerifySuccessBody(boolean success, Integer userId, String username) {
+            this.success = success;
+            this.userId = userId;
+            this.username = username;
+        }
+    }
+
+    static class ErrorBody {
+        public final String error;
+
+        ErrorBody(String error) {
+            this.error = error;
         }
     }
 

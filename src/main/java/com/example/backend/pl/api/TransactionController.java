@@ -29,7 +29,7 @@ public class TransactionController {
      */
     @GetMapping
     public ResponseEntity<List<TransactionDTO>> getUserTransactions(
-            @RequestParam(required = true) Integer userId
+            @RequestParam(name = "userId", required = true) Integer userId
     ) {
         List<TransactionDTO> transactions = transactionService.getAllUserTransactions(userId);
         return ResponseEntity.ok(transactions);
@@ -42,10 +42,10 @@ public class TransactionController {
      */
     @GetMapping("/search")
     public ResponseEntity<List<TransactionDTO>> searchTransactions(
-            @RequestParam(required = true) Integer userId,
-            @RequestParam(required = false) String description,
-            @RequestParam(required = false) Integer categoryId,
-            @RequestParam(required = false) String txnType
+            @RequestParam(name = "userId", required = true) Integer userId,
+            @RequestParam(name = "description", required = false) String description,
+            @RequestParam(name = "categoryId", required = false) Integer categoryId,
+            @RequestParam(name = "txnType", required = false) String txnType
     ) {
         List<TransactionDTO> results = transactionService.searchUserTransactions(
                 userId, description, categoryId, txnType
@@ -99,7 +99,7 @@ public class TransactionController {
      * NOTE: This endpoint must come BEFORE the /{id} endpoint to avoid route matching conflicts.
      */
     @DeleteMapping("/delete-all")
-    public ResponseEntity<?> deleteAllTransactions(@RequestParam(required = true) Integer userId) {
+    public ResponseEntity<?> deleteAllTransactions(@RequestParam(name = "userId", required = true) Integer userId) {
         transactionService.deleteAllByUserId(userId);
         logger.info("action=DELETE_ALL_TRANSACTIONS, userId={}, result=SUCCESS", userId);
         return ResponseEntity.noContent().build();
@@ -111,7 +111,7 @@ public class TransactionController {
      * Frontend: transactions page calls this when user confirms deletion.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteTransaction(@PathVariable Integer id) {
+    public ResponseEntity<?> deleteTransaction(@PathVariable("id") Integer id) {
         transactionService.deleteById(id);
         logger.info("action=DELETE_TRANSACTION, transactionId={}, result=SUCCESS", id);
         return ResponseEntity.noContent().build();
@@ -122,7 +122,7 @@ public class TransactionController {
      * Updates an existing transaction by ID.
      */
     @PutMapping(path = "/{id}", consumes = "application/json")
-    public ResponseEntity<?> updateTransaction(@PathVariable Integer id, @Valid @RequestBody TransactionDTO request) {
+    public ResponseEntity<?> updateTransaction(@PathVariable("id") Integer id, @Valid @RequestBody TransactionDTO request) {
         if (request.getUserId() == null || request.getCategoryId() == null
                 || request.getAmount() == null || request.getTxnType() == null
                 || request.getTxnDate() == null) {

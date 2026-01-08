@@ -34,6 +34,18 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles registration exceptions.
+     * Returns the specific error message to the client (e.g., "Username already exists").
+     */
+    @ExceptionHandler(RegistrationException.class)
+    public ResponseEntity<?> handleRegistrationException(RegistrationException ex) {
+        logger.warn("Registration error: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new SimpleErrorResponse(ex.getMessage()));
+    }
+
+    /**
      * Handles unauthorized/authentication exceptions.
      * Returns the original error message (e.g., "Invalid credentials") with 401 status.
      */

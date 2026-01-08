@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.math.BigDecimal;
+import java.util.Locale;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -41,7 +42,7 @@ class TransactionController_updateTransaction_ValidRequestReturnsOk {
 
         when(transactionService.save(any(TransactionDTO.class))).thenReturn(updatedTx);
 
-        String requestBody = """
+        String requestBody = String.format(Locale.US, """
                 {
                     "userId": %d,
                     "categoryId": %d,
@@ -50,7 +51,7 @@ class TransactionController_updateTransaction_ValidRequestReturnsOk {
                     "txnDate": "%s",
                     "description": "%s"
                 }
-                """.formatted(userId, categoryId, newAmount, txnType, txnDate, newDescription);
+                """, userId, categoryId, newAmount, txnType, txnDate, newDescription);
 
         // Act & Assert
         mockMvc.perform(
